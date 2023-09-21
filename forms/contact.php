@@ -1,48 +1,41 @@
 <?php
+  /**
+  * Requires the "PHP Email Form" library
+  * The "PHP Email Form" library is available only in the pro version of the template
+  * The library should be uploaded to: vendor/php-email-form/php-email-form.php
+  * For more info and help: https://bootstrapmade.com/php-email-form/
+  */
 
-// configure
-$from = 'Demo contact form <demo@domain.com>';
-$sendTo = 'Demo contact form <gshalom910@gmail.com>'; // Add Your Email
-$subject = 'New message from your Portfolio contact form';
-$fields = array('name' => 'Name', 'subject' => 'Subject', 'email' => 'Email', 'message' => 'Message'); // array variable name => Text to appear in the email
-$okMessage = 'Contact form successfully submitted. Thank you, I will get back to you soon!';
-$errorMessage = 'There was an error while submitting the form. Please try again later';
+  // Replace contact@example.com with your real receiving email address
+  $receiving_email_address = 'gshalom910@gmail.com.com';
 
-// let's do the sending
+  if( file_exists($php_email_form = '../assets/vendor/php-email-form/php-email-form.php' )) {
+    include( $php_email_form );
+  } else {
+    die( 'Unable to load the "PHP Email Form" Library!');
+  }
 
-try
-{
-    $emailText = "You have new message from contact form\n=============================\n";
+  $contact = new PHP_Email_Form;
+  $contact->ajax = true;
+  
+  $contact->to = $receiving_email_address;
+  $contact->from_name = $_POST['name'];
+  $contact->from_email = $_POST['email'];
+  $contact->subject = $_POST['subject'];
 
-    foreach ($_POST as $key => $value) {
+  // Uncomment below code if you want to use SMTP to send emails. You need to enter your correct SMTP credentials
+  /*
+  $contact->smtp = array(
+    'host' => 'example.com',
+    'username' => 'example',
+    'password' => 'pass',
+    'port' => '587'
+  );
+  */
 
-        if (isset($fields[$key])) {
-            $emailText .= "$fields[$key]: $value\n";
-        }
-    }
+  $contact->add_message( $_POST['name'], 'From');
+  $contact->add_message( $_POST['email'], 'Email');
+  $contact->add_message( $_POST['message'], 'Message', 10);
 
-    $headers = array('Content-Type: text/plain; charset="UTF-8";',
-        'From: ' . $from,
-        'Reply-To: ' . $from,
-        'Return-Path: ' . $from,
-    );
-    
-    mail($sendTo, $subject, $emailText, implode("\n", $headers));
-
-    $responseArray = array('type' => 'success', 'message' => $okMessage);
-}
-catch (\Exception $e)
-{
-    $responseArray = array('type' => 'danger', 'message' => $errorMessage);
-}
-
-if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-    $encoded = json_encode($responseArray);
-
-    header('Content-Type: application/json');
-
-    echo $encoded;
-}
-else {
-    echo $responseArray['message'];
-}
+  echo $contact->send();
+?>
